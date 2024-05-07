@@ -3,6 +3,7 @@
 I started my analysis with some simple insights:
 
 1 - Number of apps in each database
+
 2 - Missing values
 3 - Number of apps per genre
 
