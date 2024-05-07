@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/agoth/OneDrive/Área de Trabalho/apple.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="125"/><column_width id="3" width="3106"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,22:mainappleStore_description"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="appleStore_description" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="88"/><column index="2" value="300"/><column index="3" value="101"/><column index="4" value="300"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1">-- Number of apps in each TABLE
+
+SELECT COUNT(DISTINCT id) as UniqueAppIDs
+from appleStore_description
+
+SELECT COUNT(DISTINCT id) as UniqueAppIDs
+from AppleStore
+
+-- Check for missing values
+
+SELECT COUNT(*) as MissingValues
+from appleStore_description
+where app_desc is null
+
+SELECT COUNT(*) as MissingValues
+from AppleStore
+where track_name is null or user_rating is null or prime_genre is null
+
+-- Amount of apps per gender
+
+SELECT prime_genre, count (*) as NumApps
+from AppleStore
+group by prime_genre
+order by NumApps desc
+
+-- Overview of Apps Rating 
+
+SELECT min(user_rating) as MinRating,
+	   max(user_rating) as MaxRating,
+	   avg(user_rating) as AvgRating
+FROM AppleStore
+
+-- Do paid apps have higher ratings than free apps?
+
+SELECT CASE
+	WHEN PRICE &gt; 0 THEN 'PAID'
+	ELSE 'FREE'
+	END AS App_Type,
+	AVG(user_rating) AS Avg_Rating
+		FROM AppleStore
+		GROUP BY App_Type
+		
+-- Do apps with more languages have higher ratings?
+
+SELECT CASE
+	when lang_num &lt; 10 THEN '&lt;10 languages'
+	when lang_num between 10 and 30 then '10-30 languages'
+	else '&gt;30 languages'
+	end as language_bucket,
+	avg(user_rating) as Avg_Rating
+FROM AppleStore
+group by language_bucket
+order by avg_rating DESC
+
+-- Is there a correlation between the description length and the ratings?
+
+select CASE
+	when length(b.app_desc) &lt;500 then 'Short'
+	when length(b.app_desc) between 500 and 1000 then 'Medium'
+	else 'Long'
+	end as description_length_bucket,
+	avg(a.user_rating) as average_rating
+	
+FROM
+	AppleStore AS a
+JOIN
+	appleStore_description as b
+ON
+	a.id = b.id
+GROUP BY description_length_bucket
+ORDER BY average_rating desc
+
+-- Top-rated app for each genre
+
+SELECT
+	prime_genre,
+	track_name,
+	user_rating
+FROM (
+		SELECT
+		prime_genre,
+		track_name,
+		user_rating,
+		rank() OVER (partition by prime_genre order by user_rating desc, rating_count_tot desc) as rank
+		from
+		AppleStore
+		) AS a
+WHERE
+a.rank = 1
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
